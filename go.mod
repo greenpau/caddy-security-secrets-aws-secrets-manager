@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/caddyserver/caddy/v2 v2.6.2
+	github.com/google/go-cmp v0.5.8
 	go.uber.org/zap v1.24.0
 )
 

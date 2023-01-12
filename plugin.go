@@ -93,6 +93,21 @@ func (p *Plugin) Validate() error {
 		"validating plugin instance",
 		zap.String("plugin_name", p.Name),
 	)
+
+	if err := p.ValidateConfig(); err != nil {
+		return err
+	}
+
+	p.logger.Info(
+		"validated plugin instance",
+		zap.String("plugin_name", p.Name),
+		zap.String("secret_id", p.Config.ID),
+	)
+	return nil
+}
+
+// ValidateConfig validates configuration.
+func (p *Plugin) ValidateConfig() error {
 	if p.Config.ID == "" {
 		return fmt.Errorf("empty id")
 	}
@@ -102,10 +117,5 @@ func (p *Plugin) Validate() error {
 	if p.Config.Region == "" {
 		return fmt.Errorf("secret %q has empty region", p.Config.ID)
 	}
-	p.logger.Info(
-		"validated plugin instance",
-		zap.String("plugin_name", p.Name),
-		zap.String("secret_id", p.Config.ID),
-	)
 	return nil
 }

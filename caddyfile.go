@@ -33,7 +33,7 @@ func (p *Plugin) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 	repl := caddy.NewReplacer()
 
 	if !d.Next() {
-		return d.ArgErr()
+		return d.Err("unexpected end of configuration")
 	}
 
 	p.Config.ID = d.Val()
@@ -57,11 +57,12 @@ func (p *Plugin) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 		}
 	}
 
-	cfg, err := json.Marshal(p.Config)
-	if err != nil {
+	cfg, _ := json.Marshal(p.Config)
+	p.ConfigRaw = json.RawMessage(cfg)
+
+	if err := p.ValidateConfig(); err != nil {
 		return d.Errf("%v", err)
 	}
-	p.ConfigRaw = json.RawMessage(cfg)
 
 	return nil
 }
