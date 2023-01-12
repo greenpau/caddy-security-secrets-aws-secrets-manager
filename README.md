@@ -32,7 +32,7 @@ For `secrets aws_secrets_manager` directives to work, build `caddy` with the
 
 ```bash
 xcaddy build ... \
-  --with go-authcrunch-secrets-aws-secrets-manager@latest
+  --with caddy-security-secrets-aws-secrets-manager@latest
 ```
 
 ### Caddyfile Usage
