@@ -26,6 +26,7 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"github.com/caddyserver/caddy/v2"
 	"github.com/google/go-cmp/cmp"
+	aws_secrets_manager "github.com/greenpau/go-authcrunch-secrets-aws-secrets-manager"
 )
 
 func TestProvisionPlugin(t *testing.T) {
@@ -139,7 +140,7 @@ func TestValidatePlugin(t *testing.T) {
 				t.Fatalf("unexpected provisioning error: %v", err)
 			}
 
-			var mockClinet aws.HTTPClient = smithyhttp.ClientDoFunc(func(r *http.Request) (*http.Response, error) {
+			var mockClient aws.HTTPClient = smithyhttp.ClientDoFunc(func(r *http.Request) (*http.Response, error) {
 				response := packMapToJSON(t, map[string]interface{}{
 					"SecretString": packMapToJSON(t, tc.secret),
 				})
@@ -150,7 +151,8 @@ func TestValidatePlugin(t *testing.T) {
 				}, nil
 			})
 
-			p.client.SetMockClient(mockClinet)
+			p.client.SetMockClient(mockClient)
+			p.client.SetMockCredentialsProvider(aws_secrets_manager.MockCredentialsProvider{})
 
 			err = p.Validate()
 			if err != nil {

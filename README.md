@@ -11,7 +11,10 @@ for AWS Secrets Manager Integration.
 
 * [Getting Started](#getting-started)
   * [AWS Secrets Manager](#aws-secrets-manager)
+  * [Building Caddy](#building-caddy)
   * [Caddyfile Usage](#caddyfile-usage)
+    * [Without Plugin](#without-plugin)
+    * [Plugin Configuration](#plugin-configuration)
 
 <!-- end-markdown-toc -->
 
@@ -22,7 +25,19 @@ for AWS Secrets Manager Integration.
 Please follow this [doc](https://github.com/greenpau/go-authcrunch-secrets-aws-secrets-manager#getting-started)
 to set up AWS IAM Policy, Rolem and Secrets.
 
+### Building Caddy
+
+For `secrets aws_secrets_manager` directives to work, build `caddy` with the
+`latest` version of this plugin.
+
+```bash
+xcaddy build ... \
+  --with go-authcrunch-secrets-aws-secrets-manager@latest
+```
+
 ### Caddyfile Usage
+
+#### Without Plugin
 
 The following is a snippet of `Caddyfile` without the use of this plugin.
 
@@ -49,6 +64,7 @@ The following is a snippet of `Caddyfile` without the use of this plugin.
 }
 ```
 
+#### Plugin Configuration
 
 Now, here is the configuration using `secrets` retrieved from AWS Secrets Manager:
 
