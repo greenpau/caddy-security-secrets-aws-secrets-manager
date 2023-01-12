@@ -1,9 +1,14 @@
-.PHONY: test ctest covdir coverage linter gtest qtest clean dep release license build_info
-APP_VERSION:=$(shell cat VERSION | head -1)
+.PHONY: test ctest covdir coverage linter gtest qtest clean dep release license build_info build
+
+PLUGIN_NAME="caddy-security-secrets-aws-secrets-manager"
+PLUGIN_VERSION:=$(shell cat VERSION | head -1)
 GIT_COMMIT:=$(shell git describe --dirty --always)
 GIT_BRANCH:=$(shell git rev-parse --abbrev-ref HEAD -- | head -1)
+LATEST_GIT_COMMIT:=$(shell git log --format="%H" -n 1 | head -1)
 BUILD_USER:=$(shell whoami)
 BUILD_DATE:=$(shell date +"%Y-%m-%d")
+BUILD_DIR:=$(shell pwd)
+CADDY_VERSION="v2.6.2"
 VERBOSE:=-v
 ifdef TEST
 	TEST:="-run ${TEST}"
@@ -13,8 +18,20 @@ all: build_info
 	@echo "$@: complete"
 
 build_info:
-	@echo "Version: $(APP_VERSION), Branch: $(GIT_BRANCH), Revision: $(GIT_COMMIT)"
+	@echo "Version: $(PLUGIN_VERSION), Branch: $(GIT_BRANCH), Revision: $(GIT_COMMIT)"
 	@echo "Build on $(BUILD_DATE) by $(BUILD_USER)"
+
+build:
+	@rm -rf ../xcaddy-$(PLUGIN_NAME)/*
+	@rm -rf ./bin/caddy
+	@mkdir -p ../xcaddy-$(PLUGIN_NAME) && cd ../xcaddy-$(PLUGIN_NAME) && \
+	  xcaddy build $(CADDY_VERSION) --output ../$(PLUGIN_NAME)/bin/caddy \
+	  --with github.com/greenpau/$(PLUGIN_NAME)@$(LATEST_GIT_COMMIT)=$(BUILD_DIR) \
+	  --with github.com/greenpau/caddy-security@1.1.17=/home/greenpau/dev/src/github.com/greenpau/caddy-security \
+	  --with github.com/greenpau/go-authcrunch@1.0.38=/home/greenpau/dev/src/github.com/greenpau/go-authcrunch \
+	  --with github.com/crewjam/saml@v0.4.10=github.com/greenpau/origin_crewjam_saml@v0.4.11-0.20221229165346-936eba92623a
+	@bin/caddy fmt assets/config/Caddyfile --overwrite
+	@#bin/caddy validate --config assets/config/Caddyfile
 
 linter:
 	@echo "Running lint checks"
