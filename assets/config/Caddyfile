@@ -18,14 +18,14 @@
 
 		local identity store localdb {
 			realm local
-			path users.json
-			user jsmith {
-				name "secrets:users/jsmith:name"
-				email "secrets:users/jsmith:email"
-				password "secrets:users/jsmith:password" overwrite
-				# api_key "secrets:users/jsmith:api_key" overwrite
-				roles authp/admin authp/user
-			}
+			path .tmp/users.json
+			# user jsmith {
+			# 	name "secrets:users/jsmith:name"
+			# 	email "secrets:users/jsmith:email"
+			# 	password "secrets:users/jsmith:password" overwrite
+			# 	# api_key "secrets:users/jsmith:api_key" overwrite
+			# 	roles authp/admin authp/user
+			# }
 		}
 
 		authentication portal myportal {

@@ -15,6 +15,8 @@
 package secretsmanager
 
 import (
+	"encoding/json"
+
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 )
@@ -34,7 +36,7 @@ func (p *Plugin) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 		return d.ArgErr()
 	}
 
-	p.Name = d.Val()
+	p.Config.ID = d.Val()
 
 	for d.NextBlock(0) {
 		k := d.Val()
@@ -54,6 +56,12 @@ func (p *Plugin) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 			return d.Errf("unsupported %q field of %q secret with value of %q", k, p.Name, v)
 		}
 	}
+
+	cfg, err := json.Marshal(p.Config)
+	if err != nil {
+		return d.Errf("%v", err)
+	}
+	p.ConfigRaw = json.RawMessage(cfg)
 
 	return nil
 }

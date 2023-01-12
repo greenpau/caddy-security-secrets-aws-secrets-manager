@@ -17,7 +17,6 @@ package secretsmanager
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
@@ -41,7 +40,7 @@ func init() {
 
 // Config represents provisioned configuration value of AWS Secrets Manager.
 type Config struct {
-	Name   string `json:"name,omitempty" xml:"name,omitempty" yaml:"name,omitempty"`
+	ID     string `json:"id,omitempty" xml:"id,omitempty" yaml:"id,omitempty"`
 	Region string `json:"region,omitempty" xml:"region,omitempty" yaml:"region,omitempty"`
 	Path   string `json:"path,omitempty" xml:"path,omitempty" yaml:"path,omitempty"`
 }
@@ -49,7 +48,7 @@ type Config struct {
 // Plugin manages AWS Secret Manager integration.
 type Plugin struct {
 	Name      string          `json:"-"`
-	ConfigRaw json.RawMessage `json:"aws_secrets_manager,omitempty" caddy:"namespace=security.secrets.aws_secrets_manager"`
+	ConfigRaw json.RawMessage `json:"config,omitempty" caddy:"namespace=security.secrets.aws_secrets_manager"`
 	Config    Config          `json:"-"`
 	logger    *zap.Logger
 }
@@ -72,6 +71,15 @@ func (p *Plugin) Provision(ctx caddy.Context) error {
 		zap.String("plugin_name", p.Name),
 	)
 
+	if err := json.Unmarshal(p.ConfigRaw, &p.Config); err != nil {
+		p.logger.Info(
+			"failed configuring plugin instance",
+			zap.String("plugin_name", p.Name),
+			zap.Error(err),
+		)
+		return err
+	}
+
 	p.logger.Info(
 		"provisioned plugin instance",
 		zap.String("plugin_name", p.Name),
@@ -85,16 +93,19 @@ func (p *Plugin) Validate() error {
 		"validating plugin instance",
 		zap.String("plugin_name", p.Name),
 	)
-	log.Printf("PPP: %s", p.ConfigRaw)
+	if p.Config.ID == "" {
+		return fmt.Errorf("empty id")
+	}
 	if p.Config.Path == "" {
-		return fmt.Errorf("empty path")
+		return fmt.Errorf("secret %q has empty path", p.Config.ID)
 	}
 	if p.Config.Region == "" {
-		return fmt.Errorf("empty region")
+		return fmt.Errorf("secret %q has empty region", p.Config.ID)
 	}
 	p.logger.Info(
 		"validated plugin instance",
 		zap.String("plugin_name", p.Name),
+		zap.String("secret_id", p.Config.ID),
 	)
 	return nil
 }

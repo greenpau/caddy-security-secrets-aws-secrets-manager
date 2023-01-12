@@ -46,6 +46,7 @@ The following is a snippet of `Caddyfile` without the use of this plugin.
 }
 ```
 
+
 Now, here is the configuration using `secrets` retrieved from AWS Secrets Manager:
 
 ```
