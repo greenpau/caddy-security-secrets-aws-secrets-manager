@@ -120,7 +120,8 @@ func TestUnmarshalCaddyfile(t *testing.T) {
 					t.Fatalf("expected success, got: %v", err)
 				}
 				if diff := cmp.Diff(err.Error(), tc.err.Error()); diff != "" {
-					t.Fatalf("unexpected error: %v, want: %v", err, tc.err)
+					t.Logf("unexpected error: %v", err)
+					t.Fatalf("UnmarshalCaddyfile() error mismatch (-want +got):\n%s", diff)
 				}
 				return
 			}

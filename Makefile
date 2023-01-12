@@ -1,4 +1,4 @@
-.PHONY: test ctest covdir coverage linter gtest qtest clean dep release license build_info build
+.PHONY: test ctest covdir coverage linter gtest qtest clean dep release license build_info
 
 PLUGIN_NAME="caddy-security-secrets-aws-secrets-manager"
 PLUGIN_VERSION:=$(shell cat VERSION | head -1)
@@ -21,18 +21,6 @@ build_info:
 	@echo "Version: $(PLUGIN_VERSION), Branch: $(GIT_BRANCH), Revision: $(GIT_COMMIT)"
 	@echo "Build on $(BUILD_DATE) by $(BUILD_USER)"
 
-build:
-	@rm -rf ../xcaddy-$(PLUGIN_NAME)/*
-	@rm -rf ./bin/caddy
-	@mkdir -p ../xcaddy-$(PLUGIN_NAME) && cd ../xcaddy-$(PLUGIN_NAME) && \
-	  xcaddy build $(CADDY_VERSION) --output ../$(PLUGIN_NAME)/bin/caddy \
-	  --with github.com/greenpau/$(PLUGIN_NAME)@$(LATEST_GIT_COMMIT)=$(BUILD_DIR) \
-	  --with github.com/greenpau/caddy-security@1.1.17=/home/greenpau/dev/src/github.com/greenpau/caddy-security \
-	  --with github.com/greenpau/go-authcrunch@1.0.38=/home/greenpau/dev/src/github.com/greenpau/go-authcrunch \
-	  --with github.com/crewjam/saml@v0.4.10=github.com/greenpau/origin_crewjam_saml@v0.4.11-0.20221229165346-936eba92623a
-	@bin/caddy fmt assets/config/Caddyfile --overwrite
-	@#bin/caddy validate --config assets/config/Caddyfile
-
 linter:
 	@echo "Running lint checks"
 	@golint -set_exit_status ./...
@@ -48,6 +36,8 @@ test: build_info covdir linter gtest coverage
 ctest: covdir linter
 	@richgo version || go install github.com/kyoh86/richgo@latest
 	@time richgo test $(VERBOSE) $(TEST) -coverprofile=.coverage/coverage.out ./...
+	@go tool cover -html=.coverage/coverage.out -o .coverage/coverage.html
+	@go tool cover -func=.coverage/coverage.out
 	@echo "$@: complete"
 
 covdir:
@@ -59,7 +49,7 @@ coverage:
 	@#go tool cover -help
 	@go tool cover -html=.coverage/coverage.out -o .coverage/coverage.html
 	@go test -covermode=count -coverprofile=.coverage/coverage.out ./...
-	@go tool cover -func=.coverage/coverage.out | grep -v "100.0"
+	@go tool cover -func=.coverage/coverage.out
 	@echo "$@: complete"
 
 clean:
@@ -69,7 +59,10 @@ clean:
 
 qtest: covdir
 	@echo "Perform quick tests ..."
-	@time richgo test $(VERBOSE) $(TEST) -coverprofile=.coverage/coverage.out -run TestUnmarshalCaddyfile ./*.go
+	@#time richgo test $(VERBOSE) $(TEST) -coverprofile=.coverage/coverage.out -run TestUnmarshalCaddyfile ./*.go
+	@#time richgo test $(VERBOSE) $(TEST) -coverprofile=.coverage/coverage.out -run TestProvisionPlugin ./*.go
+	@#time richgo test $(VERBOSE) $(TEST) -coverprofile=.coverage/coverage.out -run TestValidatePlugin ./*.go
+	@time richgo test $(VERBOSE) $(TEST) -coverprofile=.coverage/coverage.out -run TestGetSecret ./*.go
 	@go tool cover -html=.coverage/coverage.out -o .coverage/coverage.html
 	@#go tool cover -func=.coverage/coverage.out | grep -v "100.0"
 	@go tool cover -func=.coverage/coverage.out

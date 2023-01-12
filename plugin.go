@@ -15,11 +15,13 @@
 package secretsmanager
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
+	aws_secrets_manager "github.com/greenpau/go-authcrunch-secrets-aws-secrets-manager"
 	"go.uber.org/zap"
 )
 
@@ -50,6 +52,8 @@ type Plugin struct {
 	Name      string          `json:"-"`
 	ConfigRaw json.RawMessage `json:"config,omitempty" caddy:"namespace=security.secrets.aws_secrets_manager"`
 	Config    Config          `json:"-"`
+	client    aws_secrets_manager.Client
+	secret    map[string]interface{}
 	logger    *zap.Logger
 }
 
@@ -72,13 +76,34 @@ func (p *Plugin) Provision(ctx caddy.Context) error {
 	)
 
 	if err := json.Unmarshal(p.ConfigRaw, &p.Config); err != nil {
-		p.logger.Info(
+		p.logger.Error(
 			"failed configuring plugin instance",
 			zap.String("plugin_name", p.Name),
 			zap.Error(err),
 		)
 		return err
 	}
+
+	if err := p.ValidateConfig(); err != nil {
+		p.logger.Error(
+			"failed validating plugin config",
+			zap.String("plugin_name", p.Name),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	client, err := aws_secrets_manager.NewClient(ctx, p.Config.ID, p.Config.Region)
+	if err != nil {
+		p.logger.Error(
+			"failed initializing secrets manager client",
+			zap.String("plugin_name", p.Name),
+			zap.Error(err),
+		)
+		return err
+	}
+
+	p.client = client
 
 	p.logger.Info(
 		"provisioned plugin instance",
@@ -92,11 +117,20 @@ func (p *Plugin) Validate() error {
 	p.logger.Info(
 		"validating plugin instance",
 		zap.String("plugin_name", p.Name),
+		zap.String("secret_id", p.Config.ID),
 	)
 
-	if err := p.ValidateConfig(); err != nil {
+	secret, err := p.GetSecret(context.TODO())
+	if err != nil {
+		p.logger.Error(
+			"failed validating plugin instance",
+			zap.String("plugin_name", p.Name),
+			zap.String("secret_id", p.Config.ID),
+			zap.Error(err),
+		)
 		return err
 	}
+	p.secret = secret
 
 	p.logger.Info(
 		"validated plugin instance",
@@ -118,4 +152,11 @@ func (p *Plugin) ValidateConfig() error {
 		return fmt.Errorf("secret %q has empty region", p.Config.ID)
 	}
 	return nil
+}
+
+// GetConfig returns plugin configuration.
+func (p *Plugin) GetConfig(ctx context.Context) map[string]interface{} {
+	m := p.client.GetConfig(ctx)
+	m["path"] = p.Config.Path
+	return m
 }

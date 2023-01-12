@@ -18,15 +18,20 @@ import (
 	"context"
 )
 
-// GetSecret return a secret in the form of a key-value map.
-func (p *Plugin) GetSecret(_ context.Context) (map[string]interface{}, error) {
-	secret := map[string]interface{}{
-		"foo": "bar",
+// GetSecret returns a secret in the form of a key-value map.
+func (p *Plugin) GetSecret(ctx context.Context) (map[string]interface{}, error) {
+	if p.secret != nil {
+		return p.secret, nil
 	}
-	return secret, nil
+	return p.client.GetSecret(ctx, p.Config.Path)
 }
 
-// GetSecretByKey return a value of key in the secret key-value map.
-func (p *Plugin) GetSecretByKey(_ context.Context, key string) (interface{}, error) {
-	return "bar", nil
+// GetSecretByKey returns a value of key in the secret key-value map.
+func (p *Plugin) GetSecretByKey(ctx context.Context, key string) (interface{}, error) {
+	if p.secret != nil {
+		if v, exists := p.secret[key]; exists {
+			return v, nil
+		}
+	}
+	return p.client.GetSecretByKey(ctx, p.Config.Path, key)
 }
