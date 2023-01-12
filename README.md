@@ -1,7 +1,7 @@
 # caddy-security-secrets-aws-secrets-manager
 
-<a href="https://github.com/greenpau/caddy-security-secrets-aws-secrets-manager/actions/" target="_blank"><img src="https://github.com/greenpau/caddy-security-secrets-aws-secrets-manager/workflows/build/badge.svg?branch=main"></a>
-<a href="https://pkg.go.dev/github.com/greenpau/caddy-security-secrets-aws-secrets-manager" target="_blank"><img src="https://img.shields.io/badge/godoc-reference-blue.svg"></a>
+[![build](https://github.com/greenpau/caddy-security-secrets-aws-secrets-manager/actions/workflows/build.yml/badge.svg)](https://github.com/greenpau/caddy-security-secrets-aws-secrets-manager/actions/workflows/build.yml)
+[![docs](https://img.shields.io/badge/godoc-reference-blue.svg)](https://pkg.go.dev/github.com/greenpau/caddy-security-secrets-aws-secrets-manager)
 
 [Caddy Security](https://github.com/greenpau/caddy-security) Secrets Plugin
 for AWS Secrets Manager Integration.
